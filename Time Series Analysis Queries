@@ -5,7 +5,7 @@ SELECT * FROM retail_sales
 SELECT sales_month, sales
 FROM retail_sales
 WHERE kind_of_business = 'Retail and food services sales, total';
-- graph facet shows overall tripling of sales over 28 years
+- The graph facet shows the overall tripling of sales over 28 years
 
 -- Graph shows some extra "noise". To remediate this we will dilute the graph to show only years --
 SELECT date_part('year',sales_month) as sales_year
@@ -27,21 +27,54 @@ ORDER BY 1,2
 ;
 
 -- Comparing trends of sales for men's and women's clothing stores --
-SELECT date_part('year',sales_month) as sales_year
-,kind_of_business
-,sum(sales) as sales
+SELECT sales_month, kind_of_business, sales
 FROM retail_sales
-WHERE kind_of_business in ('Book stores','Sporting goods stores','Hobby, toy, and game stores')
-GROUP BY 1,2
+WHERE kind_of_business in ('Men''s clothing stores', 'Women''s clothing stores')
 ORDER BY 1,2
 ;
 
 -- Aggregating the previous results for less 'noise' on the graph --
-SELECT sales_month
-,kind_of_business
-,sales
+SELECT date_part('year',sales_month) as sales_year, kind_of_business, sum(sales) as sales
 FROM retail_sales
-WHERE kind_of_business in ('Men''s clothing stores','Women''s clothing stores')
-ORDER BY 1,2
+WHERE kind_of_business in ('Men''s clothing stores', 'Women''s clothing stores')
+GROUP BY 1,2
 ;
 
+-- Separating Men's and women's into different columns and organizing by month
+SELECT date_part('year',sales_month) as sales_year, 
+sum(case when kind_of_business = 'Women''s clothing stores' then sales end) as womens_sales,
+sum(case when kind_of_business = 'Men''s clothing stores' then sales end) as mens_sales
+FROM retail_sales
+WHERE kind_of_business in ('Men''s clothing stores', 'Women''s clothing stores')
+GROUP BY 1
+ORDER BY 1
+;
+
+-- Calculating the difference of sales between men's and women's clothing sales --
+SELECT sales_year
+,womens_sales - mens_sales as womens_minus_mens
+,mens_sales - womens_sales as mens_minus_womens
+FROM
+(
+        SELECT date_part('year',sales_month) as sales_year
+        ,sum(case when kind_of_business = 'Women''s clothing stores' then sales end) as womens_sales
+        ,sum(case when kind_of_business = 'Men''s clothing stores' then sales end) as mens_sales
+        FROM retail_sales
+        WHERE kind_of_business in ('Men''s clothing stores','Women''s clothing stores')
+        and sales_month <= '2019-12-01'
+        GROUP BY 1
+) a
+ORDER BY 1
+;
+
+-- Moving the difference between the two values to one column --
+SELECT date_part('year',sales_month) as sales_year
+, sum(case when kind_of_business = 'Women''s clothing stores' then sales end) 
+ - sum(case when kind_of_business = 'Men''s clothing stores' then sales end) as womens_minus_mens
+FROM retail_sales
+WHERE kind_of_business in ('Men''s clothing stores'
+ , 'Women''s clothing stores')
+and sales_month <= '2019-12-01'
+GROUP BY 1
+ORDER BY 1
+;
