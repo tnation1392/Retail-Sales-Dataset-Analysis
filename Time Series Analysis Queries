@@ -25,3 +25,4 @@ WHERE kind_of_business in ('Book stores','sporting goods stores', 'Hobby, toy, a
 GROUP BY 1,2
 ORDER BY 1,2
 ;
+
