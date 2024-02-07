@@ -1,4 +1,27 @@
 -- View table to ensure data was imported --
 SELECT * FROM retail_sales
 
--- 
+-- Viewing trends of Retail/food service sales over time --
+SELECT sales_month, sales
+FROM retail_sales
+WHERE kind_of_business = 'Retail and food services sales, total';
+- graph facet shows overall tripling of sales over 28 years
+
+-- Graph shows some extra "noise". To remediate this we will dilute the graph to show only years --
+SELECT date_part('year',sales_month) as sales_year
+,sum(sales) as sales
+FROM retail_sales
+WHERE kind_of_business = 'Retail and food services sales, total'
+GROUP BY 1
+ORDER BY 1
+;
+
+-- Comparing book store, toy store, and sporting goods stores sales over the years --
+SELECT date_part('year',sales_month) as sales_year
+,kind_of_business
+,sum(sales) as sales
+FROM retail_sales
+WHERE kind_of_business in ('Book stores','sporting goods stores', 'Hobby, toy, and game stores')
+GROUP BY 1,2
+ORDER BY 1,2
+;
