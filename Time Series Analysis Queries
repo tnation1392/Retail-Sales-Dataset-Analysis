@@ -26,3 +26,22 @@ GROUP BY 1,2
 ORDER BY 1,2
 ;
 
+-- Comparing trends of sales for men's and women's clothing stores --
+SELECT date_part('year',sales_month) as sales_year
+,kind_of_business
+,sum(sales) as sales
+FROM retail_sales
+WHERE kind_of_business in ('Book stores','Sporting goods stores','Hobby, toy, and game stores')
+GROUP BY 1,2
+ORDER BY 1,2
+;
+
+-- Aggregating the previous results for less 'noise' on the graph --
+SELECT sales_month
+,kind_of_business
+,sales
+FROM retail_sales
+WHERE kind_of_business in ('Men''s clothing stores','Women''s clothing stores')
+ORDER BY 1,2
+;
+
