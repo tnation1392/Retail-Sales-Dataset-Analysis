@@ -1,0 +1,4 @@
+-- View table to ensure data was imported --
+SELECT * FROM retail_sales
+
+-- 
