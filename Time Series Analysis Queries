@@ -78,3 +78,43 @@ and sales_month <= '2019-12-01'
 GROUP BY 1
 ORDER BY 1
 ;
+
+-- Calculation of Total sales in percentages of Men's and Women's clothing per month/year --
+SELECT sales_month ,kind_of_business ,sales * 100 / total_sales as pct_total_sales
+FROM
+(
+        SELECT a.sales_month
+        ,a.kind_of_business
+        ,a.sales
+        ,sum(b.sales) as total_sales
+        FROM retail_sales a
+        JOIN retail_sales b on a.sales_month = b.sales_month
+        and b.kind_of_business in ('Men''s clothing stores'
+         , 'Women''s clothing stores')
+        WHERE a.kind_of_business in ('Men''s clothing stores', 'Women''s clothing stores')
+        GROUP BY 1,2,3
+) aa
+ORDER BY 1,2
+;
+
+-- Calculation of yearly sales percentage that Men's and Women's clothing make up --
+SELECT sales_month
+,kind_of_business
+,sales * 100 / yearly_sales as pct_yearly
+FROM
+(
+        SELECT a.sales_month
+        ,a.kind_of_business
+        ,a.sales
+        ,sum(b.sales) as yearly_sales
+        FROM retail_sales a
+        JOIN retail_sales b on date_part('year',a.sales_month) = date_part('year',b.sales_month)
+        and a.kind_of_business = b.kind_of_business
+        and b.kind_of_business in ('Men''s clothing stores','Women''s clothing stores')
+        WHERE a.kind_of_business in ('Men''s clothing stores','Women''s clothing stores')
+        GROUP BY 1,2,3
+) aa
+ORDER BY 1,2
+;
+
+-- 
