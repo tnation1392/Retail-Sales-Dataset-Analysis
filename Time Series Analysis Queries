@@ -187,7 +187,7 @@ SELECT date::date
 FROM generate_series('1770-01-01'::date, '2030-12-31'::date, '1 day') as date
 ;
 
----- Rolling time windows with sparse data
+---- Rolling time windows with sparse data --
 SELECT a.date, b.sales_month, b.sales
 FROM date_dim a
 JOIN 
@@ -215,4 +215,37 @@ JOIN
 WHERE a.date = a.first_day_of_month and a.date between '1993-01-01' and '2020-12-01'
 GROUP BY 1
 ORDER BY 1
+;
+
+-- Using window function to calculate YTD sales of women's clothing --
+SELECT sales_month, sales, 
+sum(sales) OVER (PARTITION BY date_part('year', sales_month)
+				ORDER BY  sales_month)
+				as sales_ytd
+FROM retail_sales
+WHERE kind_of_business = 'Women''s clothing stores';
+
+-- Period-over-period comparison of monthly book sales showing the previous month with LAG() --
+SELECT kind_of_business, sales_month, sales
+, LAG(sales_month) OVER (PARTITION BY kind_of_business
+						 ORDER BY sales_month
+						 ) as prev_month
+,LAG(sales) OVER (PARTITION BY kind_of_business
+				  ORDER BY sales_month
+				 ) as prev_month_sales
+FROM retail_sales
+WHERE kind_of_business = 'Book stores'
+
+-- Same idea as above but comparing yearly sales and percentage growth --
+SELECT sales_year, yearly_sales
+,lag(yearly_sales) over (order by sales_year) as prev_year_sales
+,(yearly_sales / lag(yearly_sales) over (order by sales_year) -1) * 100 as pct_growth_from_previous
+FROM
+(
+        SELECT date_part('year',sales_month) as sales_year
+        ,sum(sales) as yearly_sales
+        FROM retail_sales
+        WHERE kind_of_business = 'Book stores'
+        GROUP BY 1
+) a
 ;
