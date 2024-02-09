@@ -21,7 +21,7 @@ SELECT date_part('year',sales_month) as sales_year
 ,kind_of_business
 ,sum(sales) as sales
 FROM retail_sales
-WHERE kind_of_business in ('Book stores','sporting goods stores', 'Hobby, toy, and game stores')
+WHERE kind_of_business in ('Book stores', 'sporting goods stores', 'Hobby, toy, and game stores')
 GROUP BY 1,2
 ORDER BY 1,2
 ;
@@ -57,10 +57,10 @@ SELECT sales_year
 FROM
 (
         SELECT date_part('year',sales_month) as sales_year
-        ,sum(case when kind_of_business = 'Women''s clothing stores' then sales end) as womens_sales
-        ,sum(case when kind_of_business = 'Men''s clothing stores' then sales end) as mens_sales
+        , sum(case when kind_of_business = 'Women''s clothing stores' then sales end) as womens_sales
+        , sum(case when kind_of_business = 'Men''s clothing stores' then sales end) as mens_sales
         FROM retail_sales
-        WHERE kind_of_business in ('Men''s clothing stores','Women''s clothing stores')
+        WHERE kind_of_business in ('Men''s clothing stores', 'Women''s clothing stores')
         and sales_month <= '2019-12-01'
         GROUP BY 1
 ) a
@@ -127,3 +127,33 @@ JOIN retail_sales b on a.kind_of_business = b.kind_of_business
 WHERE a.kind_of_business = 'Women''s clothing stores'
 and a.sales_month = '2019-12-01'
 ;
+
+-- Calculation of average monthly sales in a rolling annual window --
+SELECT a.sales_month, a.sales, avg(b.sales) as moving_avg, count(b.sales) as records_count
+FROM retail_sales a
+JOIN retail_sales b on a.kind_of_business = b.kind_of_business 
+ and b.sales_month between a.sales_month - interval '11 months' 
+ and a.sales_month
+ and b.kind_of_business = 'Women''s clothing stores'
+WHERE a.kind_of_business = 'Women''s clothing stores'
+and a.sales_month >= '1993-01-01'
+GROUP BY 1,2
+ORDER BY 1
+;
+
+-- The same calculation but for Men's Clothing sales --
+SELECT a.sales_month
+,a.sales
+,avg(b.sales) as moving_avg
+,count(b.sales) as records_count
+FROM retail_sales a
+JOIN retail_sales b on a.kind_of_business = b.kind_of_business 
+ and b.sales_month between a.sales_month - interval '11 months' 
+ and a.sales_month
+ and b.kind_of_business = 'Men''s clothing stores'
+WHERE a.kind_of_business = 'Men''s clothing stores'
+and a.sales_month >= '1993-01-01'
+GROUP BY 1,2
+ORDER BY 1
+;
+
