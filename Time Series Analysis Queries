@@ -117,4 +117,13 @@ FROM
 ORDER BY 1,2
 ;
 
--- 
+-- Calculating rolling time windows
+SELECT a.sales_month, a.sales ,b.sales_month as rolling_sales_month ,b.sales as rolling_sales
+FROM retail_sales a
+JOIN retail_sales b on a.kind_of_business = b.kind_of_business 
+ and b.sales_month between a.sales_month - interval '11 months' 
+ and a.sales_month
+ and b.kind_of_business = 'Women''s clothing stores'
+WHERE a.kind_of_business = 'Women''s clothing stores'
+and a.sales_month = '2019-12-01'
+;
